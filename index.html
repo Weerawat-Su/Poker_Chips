@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c1411">
+<title>Poker Chips – เครื่องคิดเงินโต๊ะโป๊กเกอร์</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>♠️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c1411;
+  --panel:#101b16;
+  --panel2:#16241d;
+  --line:#26382f;
+  --txt:#f1f4ee;
+  --mut:#8ea597;
+  --gold:#e6c36a;
+  --gold-d:#b8923a;
+  --felt1:#17784d;
+  --felt2:#0a4129;
+  --rail:#3a2818;
+  --red:#d9534f;
+  --green:#2cae70;
+  --blue:#4aa3df;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'Prompt',system-ui,-apple-system,'Segoe UI',sans-serif;touch-action:manipulation}
+body{background:radial-gradient(1200px 600px at 50% -10%,#1b2d24 0%,transparent 60%),var(--bg);min-height:100dvh}
+button{font-family:inherit;cursor:pointer}
+b{font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+.g{color:var(--gold)}
+
+/* ---------- setup ---------- */
+.setup{max-width:560px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top)) 18px 40px}
+.brand{text-align:center;margin-bottom:26px}
+.brand .suits{color:var(--gold);letter-spacing:.5em;font-size:15px;margin-bottom:6px;padding-left:.5em}
+.brand h1{margin:0;font-size:38px;font-weight:700;letter-spacing:.01em;line-height:1.1}
+.brand h1 span{color:var(--gold)}
+.brand p{margin:8px 0 0;color:var(--mut);font-size:14.5px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:16px;font-weight:600}
+.card .hint{margin:0 0 12px;color:var(--mut);font-size:13px;line-height:1.5}
+.nrow{display:grid;grid-template-columns:repeat(9,1fr);gap:6px}
+.nbtn{position:relative;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:17px;font-weight:600}
+.nbtn.on{background:var(--gold);border-color:var(--gold);color:#2a1d00}
+.nbtn i{position:absolute;left:50%;top:-8px;transform:translateX(-50%);font-style:normal;font-size:9.5px;font-weight:600;background:var(--green);color:#04220f;padding:1px 6px;border-radius:99px;white-space:nowrap}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12.5px;color:var(--mut)}
+input[type=text],input[type=number],select{width:100%;height:48px;border-radius:12px;border:1px solid var(--line);background:#0b130f;color:var(--txt);padding:0 12px;font-size:16px;font-family:inherit;outline:none}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(230,195,106,.2)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.chip{border:1px solid var(--line);background:var(--panel2);color:var(--txt);border-radius:12px;padding:9px 13px;font-size:14px;font-weight:500}
+.chip.on{border-color:var(--gold);color:var(--gold);background:rgba(230,195,106,.1)}
+.chip em{font-style:normal;font-size:10.5px;background:var(--green);color:#04220f;border-radius:99px;padding:1px 6px;margin-left:4px;font-weight:600}
+.readout{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-size:13.5px;line-height:1.65;color:#cfdad2}
+.readout b{color:var(--gold)}
+.check{display:flex;align-items:center;gap:10px;font-size:14.5px}
+.check input{width:20px;height:20px;accent-color:var(--gold)}
+.go{width:100%;height:62px;border:none;border-radius:16px;font-size:19px;font-weight:700;color:#2a1d00;background:linear-gradient(#f0d27f,#d3a949);box-shadow:0 8px 24px rgba(214,170,70,.25)}
+.go:active{transform:translateY(1px)}
+
+/* ---------- game layout ---------- */
+.game{display:flex;flex-direction:column;min-height:100dvh;max-width:640px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 12px 4px}
+.top .info{font-size:13px;color:var(--mut);line-height:1.35}
+.top .info b{color:var(--txt);font-size:16px}
+.top .tools{display:flex;gap:8px}
+.ibtn{height:42px;min-width:42px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font-size:14px;font-weight:500}
+.ibtn:disabled{opacity:.35}
+.stage{position:relative;flex:1;min-height:380px;width:100%}
+.table{position:absolute;left:15%;right:15%;top:11%;bottom:11%;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 38%,var(--felt1) 0%,var(--felt2) 78%);
+  border:11px solid var(--rail);
+  box-shadow:0 0 0 2px #8a6a3b,inset 0 0 50px rgba(0,0,0,.55),0 24px 50px rgba(0,0,0,.55)}
+.table::after{content:"";position:absolute;inset:12px;border-radius:50%;border:1px dashed rgba(230,195,106,.28)}
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;width:50%;pointer-events:none;z-index:1}
+.steps{display:flex;justify-content:center;gap:5px;margin-bottom:8px;flex-wrap:wrap}
+.steps i{font-style:normal;font-size:10.5px;padding:2px 7px;border-radius:99px;color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.14)}
+.steps i.on{color:#2a1d00;background:var(--gold);border-color:var(--gold);font-weight:600}
+.potl{font-size:12px;color:rgba(255,255,255,.65)}
+.pot{font-size:34px;font-weight:700;line-height:1.05;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4);white-space:nowrap}
+.pot.p2{font-size:27px}.pot.p3{font-size:21px}
+.pu{font-size:12px;color:rgba(255,255,255,.7);min-height:15px}
+.cb{font-size:12px;color:var(--gold);min-height:18px;margin-top:2px}
+.slots{display:flex;justify-content:center;gap:5px;margin-top:8px}
+.slot{width:20px;height:28px;border-radius:4px;border:1.5px dashed rgba(255,255,255,.28)}
+.slot.on{border:1.5px solid #fff;background:linear-gradient(135deg,#faf6ec,#d8d1bd);box-shadow:0 2px 4px rgba(0,0,0,.35)}
+.slot.next{border:1.5px solid var(--gold);background:rgba(230,195,106,.2);animation:nxt 1.1s ease-in-out infinite}
+@keyframes nxt{50%{background:rgba(230,195,106,.55);transform:translateY(-2px)}}
+
+.seat{position:absolute;transform:translate(-50%,-50%);width:78px;padding:6px 5px 6px;border-radius:14px;text-align:center;z-index:2;cursor:pointer;
+  background:linear-gradient(#1f2f27,#16221c);border:1.5px solid #34493e;box-shadow:0 5px 12px rgba(0,0,0,.45)}
+.seat .nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seat .st{font-size:13.5px;font-weight:700;color:var(--gold);white-space:nowrap}
+.seat .ps{font-size:10px;color:var(--mut);min-height:14px;line-height:14px}
+.seat.active{border-color:var(--gold);animation:glow 1.4s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 3px rgba(230,195,106,.2),0 0 18px rgba(230,195,106,.35)}50%{box-shadow:0 0 0 5px rgba(230,195,106,.32),0 0 28px rgba(230,195,106,.6)}}
+.seat.folded{opacity:.4}
+.seat.out{opacity:.22}
+.seat.allin .ps{color:#ff8f7a;font-weight:700}
+.seat.winner{border-color:#fff;background:linear-gradient(#6b5420,#3f3213);box-shadow:0 0 24px rgba(230,195,106,.7)}
+.badges{position:absolute;top:-10px;right:-6px;display:flex;gap:3px}
+.bd{font-size:10px;font-weight:700;height:19px;min-width:19px;padding:0 5px;border-radius:99px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.5)}
+.bd.d{background:#fff;color:#111}
+.bd.sb{background:var(--blue);color:#032033}
+.bd.bb{background:var(--gold);color:#2a1d00}
+.bet{position:absolute;transform:translate(-50%,-50%);z-index:3;display:flex;align-items:center;gap:5px;padding:2px 9px 2px 5px;border-radius:99px;background:rgba(0,0,0,.65);border:1px solid rgba(230,195,106,.65);font-size:12.5px;font-weight:700;white-space:nowrap}
+.bet::before{content:"";width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4,var(--gold-d));box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+
+/* ---------- panel ---------- */
+.panel{background:linear-gradient(#121e18,#0d1511);border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));max-height:60dvh;overflow:auto}
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:6px}
+.ph .who{font-size:12.5px;color:var(--mut)}
+.ph .who b{display:block;font-size:24px;color:var(--txt);line-height:1.2}
+.ph .who em{font-style:normal;font-size:12px;color:var(--gold);margin-left:6px}
+.ph .mine{text-align:right;font-size:12.5px;color:var(--mut)}
+.ph .mine b{display:block;font-size:21px;color:var(--gold)}
+.lastb{background:rgba(230,195,106,.1);border:1px solid rgba(230,195,106,.3);color:#f3e2b0;border-radius:12px;padding:7px 12px;font-size:14px;margin:4px 0 8px}
+.notice{background:rgba(74,163,223,.14);border:1px solid rgba(74,163,223,.45);color:#cde8f8;border-radius:12px;padding:9px 12px;font-size:14.5px;margin-bottom:10px;line-height:1.5}
+.need{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin:8px 0 10px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.need span{font-size:14px;color:#cfdad2;line-height:1.35}
+.need b{font-size:30px;color:var(--gold);line-height:1}
+.note{font-size:13px;line-height:1.55;color:#ffd9b8;background:rgba(224,89,60,.12);border:1px solid rgba(224,89,60,.4);border-radius:12px;padding:8px 12px;margin-bottom:10px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{min-height:88px;border:none;border-radius:18px;font-size:23px;font-weight:700;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;padding:8px}
+.btn small{font-size:14px;font-weight:500;opacity:.85;margin-top:3px}
+.btn:active:not(:disabled){transform:translateY(1px) scale(.99)}
+.btn:disabled{opacity:.28}
+.b-fold{background:linear-gradient(#5b2a2e,#43201f);border:1px solid #7a3a3b}
+.b-call{background:linear-gradient(#2fb877,#1f8d59)}
+.b-raise{background:linear-gradient(#f0d27f,#d3a949);color:#2a1d00}
+.b-all{background:linear-gradient(#e0593c,#a52a1f)}
+.b-main{width:100%;min-height:76px;background:linear-gradient(#f0d27f,#d3a949);color:#2a1d00}
+.b-ghost{background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
+.danger{background:#4b1f22;border:1px solid #7a3a3b;color:#ffd7d3}
+
+.rs-top{display:flex;align-items:center;gap:10px;margin:6px 0 2px}
+.rs-top label{font-size:14px;color:var(--mut);flex:1}
+.rs-top input{width:200px;height:62px;font-size:30px;font-weight:700;text-align:right;color:var(--gold)}
+.rs-read{display:flex;justify-content:space-between;font-size:13px;color:#cfdad2;margin-bottom:6px;gap:10px}
+.rs-read b{color:#fff}
+.rs-sl{display:grid;grid-template-columns:auto auto 1fr auto auto;align-items:center;gap:6px;margin:8px 0}
+.rs-sl input[type=range]{width:100%;accent-color:var(--gold);height:40px}
+.step{height:48px;min-width:52px;padding:0 8px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:13px;font-weight:600}
+.qrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.q{border:1px solid var(--line);background:var(--panel2);color:var(--txt);border-radius:14px;padding:11px 2px;font-size:13px;line-height:1.3;min-height:62px}
+.q b{display:block;font-size:15px;color:var(--gold)}
+.q.mx{border-color:#a52a1f;background:rgba(224,89,60,.15)}
+.q.mx b{color:#ff9d86}
+.rs-act{display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.rs-act .btn{min-height:76px}
+
+.msg{font-size:15.5px;line-height:1.65;color:#dbe5de}
+.msg b{color:#fff}
+.title{font-size:21px;font-weight:700;margin:0 0 8px;color:var(--gold)}
+.pill{display:inline-block;font-size:13px;color:var(--gold);background:rgba(230,195,106,.12);border:1px solid rgba(230,195,106,.3);padding:3px 11px;border-radius:99px;margin:0 4px 6px 0}
+.lvl{background:rgba(74,163,223,.14);border:1px solid rgba(74,163,223,.4);color:#bfe2f7;border-radius:12px;padding:8px 12px;font-size:14px;margin-bottom:10px}
+.act{margin-top:14px}
+
+.pots .pc{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.pc .pt{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;margin-bottom:8px}
+.pc .pt b:last-child{color:var(--gold);font-size:24px}
+.pc .opts{display:flex;flex-wrap:wrap;gap:8px}
+.pk{border:1.5px solid var(--line);background:#0d1712;color:var(--txt);border-radius:14px;padding:13px 18px;font-size:16px;font-weight:500}
+.pk.on{background:var(--gold);color:#2a1d00;border-color:var(--gold);font-weight:700}
+.pc .auto{font-size:14px;color:var(--mut)}
+.pc .share{margin-top:8px;font-size:14px;color:#9be3bb}
+
+.gots{margin:6px 0 12px}
+.got{display:flex;justify-content:space-between;align-items:baseline;background:linear-gradient(90deg,rgba(230,195,106,.2),rgba(230,195,106,.05));border:1px solid rgba(230,195,106,.4);border-radius:14px;padding:10px 14px;margin-bottom:8px}
+.got span{font-size:17px;font-weight:600}
+.got b{font-size:26px;color:var(--gold)}
+.rows .r{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.rows .r:last-child{border-bottom:none}
+.rows .r .n{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rows .r .d{font-weight:700;min-width:70px;text-align:right}
+.rows .r .d.p{color:#5fd596}.rows .r .d.m{color:#ff8a80}.rows .r .d.z{color:var(--mut)}
+.rows .r .s{min-width:80px;text-align:right;color:var(--gold);font-weight:600}
+.rb{border:1px solid var(--line);background:var(--panel2);color:var(--txt);border-radius:10px;font-size:12.5px;padding:7px 10px}
+.bust{font-size:11.5px;color:#ff8a80}
+
+.lgb{width:100%;margin-top:14px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--mut);font-size:14px}
+.lt{margin-top:8px}
+.lr{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:6px;padding:7px 4px;border-bottom:1px solid var(--line);font-size:13.5px;align-items:center}
+.lr span:not(.ln){text-align:right}
+.lr.lh{color:var(--mut);font-size:12px}
+.lr.cur{background:rgba(230,195,106,.1);border-radius:8px}
+.lr.fd{opacity:.45}
+.lr .ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lr .ln em{font-style:normal;font-size:11px;color:#ff8f7a;margin-left:5px}
+.potsum{margin-top:10px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.potsum div{padding:4px 0;font-size:14px}
+.potsum small{display:block;color:var(--mut);font-size:12px;margin-top:1px}
+
+/* ---------- overlay ---------- */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:600px;background:var(--panel);border:1px solid var(--line);border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88dvh;overflow:auto}
+.sheet h3{margin:0 0 12px;font-size:19px}
+.sheet .sec{margin-bottom:16px}
+.sheet .sec p{margin:0 0 8px;color:var(--mut);font-size:13px;line-height:1.5}
+.sheet .btn{min-height:56px;font-size:17px}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#000d;color:#fff;border:1px solid var(--line);padding:11px 18px;border-radius:12px;font-size:15px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:90%;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* tablet portrait */
+@media (min-width:600px){
+  .game{max-width:760px}
+  .seat{width:98px;padding:8px 6px}
+  .seat .nm{font-size:14px}.seat .st{font-size:16px}.seat .ps{font-size:11px}
+  .btn{min-height:104px;font-size:27px}
+  .btn small{font-size:16px}
+  .pot{font-size:44px}.pot.p2{font-size:34px}.pot.p3{font-size:26px}
+  .bet{font-size:14px}
+  .stage{min-height:520px}
+}
+/* iPad landscape / desktop: table left, controls right */
+@media (min-width:900px){
+  .game{max-width:1280px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(400px,.7fr);grid-template-rows:auto 1fr;column-gap:16px;padding:0 16px}
+  .top{grid-column:1/-1}
+  .stage{min-height:calc(100dvh - 90px)}
+  .panel{max-height:calc(100dvh - 100px);border-radius:22px;border:1px solid var(--line);margin-bottom:16px;align-self:start;position:sticky;top:8px;padding-bottom:16px}
+  .seat{width:112px}
+  .pot{font-size:54px}.pot.p2{font-size:42px}.pot.p3{font-size:32px}
+  .center{width:44%}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   Poker Chips – pass-and-play chip calculator (no cards)
+   One person (table host) controls the device for everyone
+   ========================================================= */
+const KEY='pokerChipsGame_v2';
+const DEFAULT_N=6;
+const STACKS=[1000,2000,5000,10000,20000,50000,100000,200000,500000,1e6,2e6,5e6,1e7,2e7,5e7,1e8];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const fmtC=n=>{n=Math.round(n);if(n>=1e6)return(+(n/1e6).toFixed(3))+'M';return n.toLocaleString('en-US');};
+const fmtS=n=>n>=1e6?fmtC(n):fmt(n);
+const thaiUnit=n=>n>=1e6?`≈ ${+(n/1e6).toFixed(3)} ล้าน`:'';
+
+let G=null, hist=[];
+const ui={raising:false,val:0,menu:false,seat:null,ledger:window.innerWidth>=900};
+const S={n:DEFAULT_N,names:Array(10).fill(''),stack:2000,sb:10,bb:20,every:0,rand:true,manual:false};
+
+/* ---------- blinds helpers ---------- */
+function niceBB(target){
+  const c=[2];for(let k=1;k<=12;k++)[1,2,5].forEach(m=>c.push(m*Math.pow(10,k)));
+  let best=c[0],bd=Infinity;
+  c.forEach(v=>{const d=Math.abs(Math.log(v/Math.max(2,target)));if(d<bd){bd=d;best=v;}});
+  return best;
+}
+function defaultBlinds(stack){const bb=niceBB(stack/100);return{sb:bb/2,bb};}
+function blindOptions(stack){
+  const out=[],seen=new Set();
+  [[200,'ลึกมาก'],[100,'มาตรฐาน'],[50,'กลาง'],[25,'เร็ว'],[10,'เร็วมาก']].forEach(([r,l])=>{
+    const bb=niceBB(stack/r);if(seen.has(bb))return;seen.add(bb);
+    out.push({label:l,r,sb:bb/2,bb});
+  });
+  return out;
+}
+const stackLabel=v=>v>=1e6?`${v/1e6} ล้าน`:fmt(v);
+
+/* ---------- general helpers ---------- */
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600);}
+function buzz(){try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({G,hist:hist.slice(-12)}))}catch(e){}}
+function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.G){G=r.G;hist=r.hist||[];return true}}catch(e){}return false}
+function pushHist(){hist.push(JSON.stringify(G));if(hist.length>40)hist.shift();}
+function nextIdx(from,pred){const n=G.players.length;for(let k=1;k<=n;k++){const j=(from+k)%n;if(pred(G.players[j],j))return j;}return -1;}
+const canAct=p=>!p.folded&&!p.allin&&!p.out;
+const needsAction=p=>canAct(p)&&(!p.acted||p.bet<G.currentBet);
+const potTotal=()=>G.players.reduce((a,p)=>a+p.total,0);
+
+function pendingActor(from){
+  const actors=G.players.filter(canAct);
+  if(actors.length===0)return -1;
+  if(actors.length===1&&actors[0].bet>=G.currentBet)return -1;
+  return nextIdx(from,needsAction);
+}
+function posNames(r){
+  if(r<=0)return[];
+  if(r===1)return['BTN'];
+  if(r===2)return['UTG','BTN'];
+  const tailAll=['LJ','HJ','CO','BTN'];
+  const tailN=Math.min(r-1,4);
+  const tail=tailAll.slice(4-tailN);
+  const mid=['UTG+1','MP','MP+1'].slice(0,r-1-tailN);
+  return['UTG',...mid,...tail];
+}
+function posNameMap(){
+  const P=G.players,map={};
+  const alive=P.map((p,i)=>i).filter(i=>!P[i].out);
+  if(alive.length<2||G.handNo===0)return map;
+  if(alive.length===2){map[G.dealer]='BTN/SB';map[G.bbIdx]='BB';return map;}
+  map[G.sbIdx]='SB';map[G.bbIdx]='BB';
+  let j=G.bbIdx;
+  posNames(alive.length-2).forEach(nm=>{j=nextIdx(j,p=>!p.out);map[j]=nm;});
+  return map;
+}
+
+/* ---------- game flow ---------- */
+function startGame(){
+  readSetup();
+  const n=S.n;
+  const names=[];for(let i=0;i<n;i++)names.push((S.names[i]||'').trim()||('ผู้เล่น '+(i+1)));
+  const stack=Math.round(+S.stack),sb=Math.round(+S.sb),bb=Math.round(+S.bb);
+  if(!(stack>0&&sb>0&&bb>0))return toast('กรอกเงินเริ่มต้นและบลายด์ให้ครบ');
+  if(sb>bb)return toast('Small blind ต้องไม่มากกว่า Big blind');
+  if(stack<bb*2)return toast('เงินเริ่มต้นควรมากกว่า Big blind อย่างน้อย 2 เท่า');
+  G={settings:{stack,every:+S.every},sb,bb,pendSb:0,pendBb:0,
+    players:names.map(nm=>({name:nm,stack,bet:0,total:0,folded:false,allin:false,out:false,acted:false})),
+    dealer:S.rand?Math.floor(Math.random()*n):0,handNo:0,street:0,phase:'deal',turn:0,
+    currentBet:0,lastRaise:bb,sbIdx:0,bbIdx:0,firstFrom:0,last:'',notice:'',result:null,sd:null,levelUp:false};
+  hist=[];ui.raising=false;ui.menu=false;ui.seat=null;
+  startHand();
+}
+function post(i,amt){const p=G.players[i];const a=Math.min(amt,p.stack);p.stack-=a;p.bet=a;p.total=a;if(p.stack===0)p.allin=true;}
+function startHand(){
+  const P=G.players;
+  P.forEach(p=>{p.out=p.stack<=0;});
+  const alive=P.filter(p=>!p.out);
+  if(alive.length<2){G.phase='over';save();render();return;}
+  if(G.handNo>0)G.dealer=nextIdx(G.dealer,p=>!p.out);
+  else if(P[G.dealer].out)G.dealer=nextIdx(G.dealer,p=>!p.out);
+  G.handNo++;
+  if(G.pendSb){G.sb=G.pendSb;G.bb=G.pendBb;G.pendSb=0;G.pendBb=0;}
+  G.levelUp=false;
+  if(G.settings.every>0&&G.handNo>1&&(G.handNo-1)%G.settings.every===0){G.sb*=2;G.bb*=2;G.levelUp=true;}
+  P.forEach(p=>{p.bet=0;p.total=0;p.folded=p.out;p.allin=false;p.acted=false;});
+  if(alive.length===2){G.sbIdx=G.dealer;G.bbIdx=nextIdx(G.dealer,p=>!p.out);}
+  else{G.sbIdx=nextIdx(G.dealer,p=>!p.out);G.bbIdx=nextIdx(G.sbIdx,p=>!p.out);}
+  post(G.sbIdx,G.sb);post(G.bbIdx,G.bb);
+  G.currentBet=G.bb;G.lastRaise=G.bb;G.street=0;G.phase='deal';G.firstFrom=G.bbIdx;
+  G.last='';G.notice='';G.result=null;G.sd=null;ui.raising=false;
+  save();render();
+}
+function confirmDeal(){
+  pushHist();buzz();
+  G.levelUp=false;G.notice='';
+  const nxt=pendingActor(G.firstFrom);
+  if(nxt>=0){G.phase='bet';G.turn=nxt;}
+  else endStreet();
+  ui.raising=false;save();render();
+}
+/* Give back any part of the biggest bet that nobody could match */
+function returnUncalled(){
+  const P=G.players;
+  let top=-1,max=0,second=0;
+  P.forEach((p,i)=>{if(p.bet>max){second=max;max=p.bet;top=i;}else if(p.bet>second){second=p.bet;}});
+  if(top>=0&&max>second){
+    const refund=max-second,p=P[top];
+    p.stack+=refund;p.bet-=refund;p.total-=refund;
+    if(p.stack>0)p.allin=false;
+    G.notice=`คืนเงิน ${fmt(refund)} ให้ ${p.name} เพราะไม่มีใครตามส่วนที่เกิน`;
+    toast(G.notice);
+  }
+}
+function endStreet(){
+  G.notice='';
+  returnUncalled();
+  G.players.forEach(p=>{p.bet=0;p.acted=false;});
+  G.currentBet=0;G.lastRaise=G.bb;
+  if(G.street>=3){startShowdown();return;}
+  G.street++;G.phase='deal';G.firstFrom=G.dealer;
+}
+function commit(p,a){p.stack-=a;p.bet+=a;p.total+=a;if(p.stack<=0){p.stack=0;p.allin=true;}}
+function doRaise(p,to){
+  const maxTo=p.bet+p.stack;to=Math.min(Math.round(to),maxTo);
+  const label=G.currentBet===0?'เดิมพัน':'เกทับเป็น';
+  commit(p,to-p.bet);
+  const size=to-G.currentBet;
+  if(to>G.currentBet){
+    if(size>=G.lastRaise)G.lastRaise=size;
+    G.currentBet=to;
+    G.players.forEach(q=>{if(q!==p)q.acted=false;});
+  }
+  p.acted=true;
+  G.last=`${p.name} ${label} ${fmt(to)}`+(p.allin?' (ออลอิน)':'');
+}
+function act(kind,val){
+  pushHist();buzz();
+  const i=G.turn,p=G.players[i];
+  const callIt=()=>{const a=Math.min(G.currentBet-p.bet,p.stack);commit(p,a);p.acted=true;G.last=`${p.name} ตาม ${fmt(a)}`+(p.allin?' (ออลอิน)':'');};
+  if(kind==='fold'){p.folded=true;G.last=`${p.name} หมอบ`;}
+  else if(kind==='check'){p.acted=true;G.last=`${p.name} ผ่าน`;}
+  else if(kind==='call'){callIt();}
+  else if(kind==='allin'){const to=p.bet+p.stack;if(to<=G.currentBet)callIt();else doRaise(p,to);}
+  else if(kind==='raise'){doRaise(p,val);}
+  ui.raising=false;
+  const live=G.players.filter(q=>!q.folded);
+  if(live.length===1){awardFold(live[0]);}
+  else{
+    const nxt=pendingActor(i);
+    if(nxt>=0)G.turn=nxt;else endStreet();
+  }
+  save();render();
+}
+function awardFold(w){
+  const win=G.players.map(()=>0);
+  win[G.players.indexOf(w)]=potTotal();
+  finishHand(win,`${w.name} ชนะ เพราะทุกคนหมอบ`);
+}
+function sidePots(){
+  const P=G.players;
+  const levels=[...new Set(P.filter(p=>p.total>0).map(p=>p.total))].sort((a,b)=>a-b);
+  let prev=0;const pots=[];
+  for(const lv of levels){
+    let amt=0;P.forEach(p=>{amt+=Math.max(0,Math.min(p.total,lv)-prev);});
+    const elig=P.map((p,i)=>i).filter(i=>!P[i].folded&&P[i].total>=lv);
+    if(amt>0){
+      const last=pots[pots.length-1];
+      if(last&&(elig.length===0||last.elig.join()===elig.join()))last.amount+=amt;
+      else pots.push({amount:amt,elig});
+    }
+    prev=lv;
+  }
+  return pots;
+}
+function startShowdown(){
+  const pots=sidePots();
+  G.sd={pots,picks:pots.map(p=>p.elig.length===1?[p.elig[0]]:[])};
+  G.phase='showdown';
+}
+function confirmShowdown(){
+  pushHist();buzz();
+  const n=G.players.length,win=G.players.map(()=>0);
+  G.sd.pots.forEach((pot,k)=>{
+    const w=G.sd.picks[k].slice().sort((a,b)=>((a-G.dealer+n)%n)-((b-G.dealer+n)%n));
+    const share=Math.floor(pot.amount/w.length);let rem=pot.amount-share*w.length;
+    w.forEach(i=>{win[i]+=share;});
+    for(let k2=0;rem>0;k2=(k2+1)%w.length){win[w[k2]]+=1;rem--;}
+  });
+  G.notice='';
+  finishHand(win,'สรุปเงินที่ผู้ชนะต้องหยิบจากกองกลาง');
+}
+function finishHand(win,text){
+  const P=G.players;
+  const rows=[];
+  P.forEach((p,i)=>{if(p.out)return;rows.push({i,delta:win[i]-p.total,got:win[i]});});
+  P.forEach((p,i)=>{p.stack+=win[i];p.bet=0;});
+  G.result={text,rows,winners:rows.filter(r=>r.delta>0).map(r=>r.i),pot:potTotal()};
+  G.phase='result';G.sd=null;ui.raising=false;
+  save();render();
+}
+function nextHand(){pushHist();startHand();}
+function undo(){
+  if(!hist.length)return toast('ไม่มีอะไรให้ย้อนกลับ');
+  G=JSON.parse(hist.pop());ui.raising=false;save();render();
+}
+function rebuy(i){
+  pushHist();
+  G.players[i].stack+=G.settings.stack;
+  toast(`${G.players[i].name} ซื้อเพิ่ม ${fmt(G.settings.stack)}`);
+  save();render();
+}
+function newGame(){
+  if(!confirm('เริ่มเกมใหม่? ข้อมูลเกมปัจจุบันจะหายทั้งหมด'))return;
+  G=null;hist=[];ui.menu=false;ui.raising=false;ui.seat=null;
+  try{localStorage.removeItem(KEY)}catch(e){}
+  render();
+}
+
+/* ---------- setup screen ---------- */
+function readSetup(){
+  if(!$('#setup'))return;
+  document.querySelectorAll('.nameinp').forEach((el,i)=>{S.names[i]=el.value;});
+  S.stack=$('#stack').value;S.sb=$('#sb').value;S.bb=$('#bb').value;
+  S.every=$('#every').value;S.rand=$('#rand').checked;
+}
+function stackChipsHTML(){
+  return STACKS.map(v=>`<button class="chip ${+S.stack===v?'on':''}" data-act="pstack" data-v="${v}">${stackLabel(v)}${v===2000?'<em>ค่าเริ่มต้น</em>':''}</button>`).join('');
+}
+function blindChipsHTML(){
+  const st=+S.stack||0;
+  if(st<=0)return '';
+  return blindOptions(st).map(o=>`<button class="chip ${+S.sb===o.sb&&+S.bb===o.bb?'on':''}" data-act="pblind" data-a="${o.sb}" data-b="${o.bb}" data-r="${o.r}">${o.label} ${fmtC(o.sb)}/${fmtC(o.bb)}${o.r===100?'<em>แนะนำ</em>':''}</button>`).join('');
+}
+function readoutHTML(){
+  const st=+S.stack||0,sb=+S.sb||0,bb=+S.bb||0;
+  if(!(st>0&&bb>0))return 'กรอกเงินเริ่มต้นและบลายด์';
+  const d=defaultBlinds(st);
+  const same=(sb===d.sb&&bb===d.bb);
+  return `เงินเริ่มต้นคนละ <b>${fmt(st)}</b> ${thaiUnit(st)}<br>
+    Small blind <b>${fmt(sb)}</b> และ Big blind <b>${fmt(bb)}</b> เงินเริ่มต้นเท่ากับ <b>${+(st/bb).toFixed(1)}</b> Big blind<br>
+    <span style="color:var(--mut)">${same?'ตรงกับค่าที่ระบบแนะนำจากเงินเริ่มต้น':`ค่าที่ระบบแนะนำคือ ${fmt(d.sb)} / ${fmt(d.bb)} (กดปุ่ม “มาตรฐาน” ด้านบนเพื่อใช้ค่านี้)`}</span>`;
+}
+function refreshSetupBits(){
+  $('#stackchips').innerHTML=stackChipsHTML();
+  $('#blindchips').innerHTML=blindChipsHTML();
+  $('#readout').innerHTML=readoutHTML();
+}
+function setupHTML(){
+  let nb='';
+  for(let v=2;v<=10;v++)nb+=`<button class="nbtn ${S.n===v?'on':''}" data-act="n" data-v="${v}">${v}${v===DEFAULT_N?'<i>ค่าเริ่มต้น</i>':''}</button>`;
+  let names='';
+  for(let i=0;i<S.n;i++)names+=`<div class="field"><label>ที่นั่ง ${i+1}</label><input class="nameinp" type="text" maxlength="14" placeholder="ผู้เล่น ${i+1}" value="${esc(S.names[i])}"></div>`;
+  return `<div class="setup" id="setup">
+    <div class="brand">
+      <div class="suits">♠ ♥ ♣ ♦</div>
+      <h1>Poker <span>Chips</span></h1>
+      <p>ไม่มีไพ่ มีแค่เงิน คนคุมโต๊ะกดแทนทุกคน ผู้เล่นใช้ไพ่และเงินจริงบนโต๊ะ</p>
+    </div>
+    <div class="card">
+      <h2>จำนวนผู้เล่น</h2>
+      <p class="hint">เลือกได้ 2–10 คน ค่าเริ่มต้นคือ ${DEFAULT_N} คน</p>
+      <div class="nrow">${nb}</div>
+    </div>
+    <div class="card">
+      <h2>ชื่อผู้เล่น</h2>
+      <p class="hint">เรียงตามที่นั่ง วนตามเข็มนาฬิกา เว้นว่างได้ ระบบจะตั้งชื่อให้</p>
+      <div class="names">${names}</div>
+    </div>
+    <div class="card">
+      <h2>เงินเริ่มต้นของแต่ละคน</h2>
+      <p class="hint">เลือกจากรายการ หรือพิมพ์เองได้ รองรับถึงหลักร้อยล้านสำหรับเงินจากบอร์ดเกม เมื่อเลือกแล้ว บลายด์จะถูกตั้งให้อัตโนมัติ และยังแก้เองได้</p>
+      <input id="stack" type="number" inputmode="numeric" min="1" value="${esc(S.stack)}">
+      <div class="chips" id="stackchips">${stackChipsHTML()}</div>
+    </div>
+    <div class="card">
+      <h2>บลายด์</h2>
+      <p class="hint">Small blind จ่ายโดยคนซ้ายมือ Dealer และ Big blind จ่ายโดยคนถัดไป เลือกจากรายการที่คำนวณจากเงินเริ่มต้นให้แล้ว หรือกรอกเอง</p>
+      <div class="row2">
+        <div class="field"><label>Small blind</label><input id="sb" type="number" inputmode="numeric" min="1" value="${esc(S.sb)}"></div>
+        <div class="field"><label>Big blind</label><input id="bb" type="number" inputmode="numeric" min="1" value="${esc(S.bb)}"></div>
+      </div>
+      <div class="chips" id="blindchips">${blindChipsHTML()}</div>
+      <div class="readout" id="readout">${readoutHTML()}</div>
+    </div>
+    <div class="card">
+      <h2>ตัวเลือกเพิ่มเติม</h2>
+      <div class="field" style="margin:10px 0 14px"><label>ขึ้นบลายด์เป็น 2 เท่า</label>
+        <select id="every">${[[0,'ไม่ขึ้น (ค่าเริ่มต้น)'],[5,'ทุก 5 แฮนด์'],[10,'ทุก 10 แฮนด์'],[15,'ทุก 15 แฮนด์'],[20,'ทุก 20 แฮนด์']].map(([v,t])=>`<option value="${v}" ${+S.every===v?'selected':''}>${t}</option>`).join('')}</select>
+      </div>
+      <label class="check"><input id="rand" type="checkbox" ${S.rand?'checked':''}> สุ่มคนที่เป็น Dealer คนแรก</label>
+    </div>
+    <button class="go" data-act="start">เริ่มเกม</button>
+  </div>`;
+}
+
+/* ---------- game screen ---------- */
+function ledgerBlock(){
+  const P=G.players;
+  let h=`<button class="lgb" data-act="ledger">${ui.ledger?'ซ่อน':'ดู'}ตารางเงินและหม้อของทุกคน</button>`;
+  if(!ui.ledger)return h;
+  let rows=`<div class="lr lh"><span>ผู้เล่น</span><span>วางรอบนี้</span><span>รวมในหม้อ</span><span>เหลือ</span></div>`;
+  P.forEach((p,i)=>{
+    if(p.out)return;
+    const st=p.folded?'หมอบ':p.allin?'ออลอิน':'';
+    rows+=`<div class="lr ${G.phase==='bet'&&i===G.turn?'cur':''} ${p.folded?'fd':''}"><span class="ln">${esc(p.name)}${st?`<em>${st}</em>`:''}</span><span class="num">${p.bet?fmt(p.bet):'-'}</span><span class="num">${fmt(p.total)}</span><span class="num g">${fmt(p.stack)}</span></div>`;
+  });
+  let pots='';
+  if(P.some(p=>p.allin&&!p.folded)){
+    const sp=sidePots();
+    if(sp.length)pots=`<div class="potsum">`+sp.map((pt,k)=>`<div><b>${k===0?'หม้อหลัก':'หม้อรอง '+k}</b> <span class="num g">${fmt(pt.amount)}</span><small>${pt.elig.length===1?`ยังไม่มีใครตาม ถ้าไม่มีใครตามจะคืนให้ ${esc(P[pt.elig[0]].name)}`:'ผู้มีสิทธิ์ชนะหม้อนี้: '+pt.elig.map(i=>esc(P[i].name)).join(', ')}</small></div>`).join('')+`</div>`;
+  }
+  return h+pots+`<div class="lt">${rows}</div>`;
+}
+
+function gameHTML(){
+  const P=G.players,n=P.length;
+  const pot=G.phase==='result'?0:potTotal();
+  const pn=posNameMap();
+  let seats='',bets='';
+  P.forEach((p,i)=>{
+    const th=(90+i*360/n)*Math.PI/180;
+    const x=50+38*Math.cos(th),y=50+42*Math.sin(th);
+    const bx=50+(x-50)*.56,by=50+(y-50)*.56;
+    const inHand=G.handNo>0&&!p.out;
+    let bd='';
+    if(inHand){
+      if(i===G.dealer)bd+='<span class="bd d">D</span>';
+      if(i===G.sbIdx)bd+='<span class="bd sb">SB</span>';
+      if(i===G.bbIdx)bd+='<span class="bd bb">BB</span>';
+    }
+    const status=p.out?'ออกจากเกม':p.folded?'หมอบ':p.allin?'ออลอิน':(pn[i]||'');
+    const cls=['seat',G.phase==='bet'&&i===G.turn?'active':'',p.folded&&!p.out?'folded':'',p.out?'out':'',p.allin&&!p.folded?'allin':'',G.result&&G.result.winners.includes(i)?'winner':''].join(' ');
+    seats+=`<div class="${cls}" data-act="seat" data-i="${i}" style="left:${x}%;top:${y}%"><div class="badges">${bd}</div><div class="nm">${esc(p.name)}</div><div class="st num">${fmtS(p.stack)}</div><div class="ps">${status}</div></div>`;
+    if(p.bet>0&&G.phase!=='result')bets+=`<div class="bet num" style="left:${bx}%;top:${by}%">${fmtS(p.bet)}</div>`;
+  });
+  const s=G.street;
+  const prevC=[0,0,3,4][s],newC=[0,3,4,5][s];
+  let slots='';
+  for(let k=0;k<5;k++){
+    let c='slot';
+    if(G.phase==='deal'){c+=k<prevC?' on':(k<newC?' next':'');}
+    else c+=k<newC?' on':'';
+    slots+=`<div class="${c}"></div>`;
+  }
+  const steps=['Pre-flop','Flop','Turn','River'].map((t,k)=>`<i class="${k===s?'on':''}">${t}</i>`).join('');
+  const cb=(G.phase==='bet'&&G.currentBet>0)?`เดิมพันสูงสุดรอบนี้ ${fmt(G.currentBet)}`:'';
+  const potStr=fmt(pot);
+  const pc=potStr.length>=11?'p3':potStr.length>=8?'p2':'';
+  let panel='';
+  if(G.phase==='deal')panel=dealPanel();
+  else if(G.phase==='bet')panel=betPanel();
+  else if(G.phase==='showdown')panel=sdPanel();
+  else if(G.phase==='result')panel=resultPanel();
+  else if(G.phase==='over')panel=overPanel();
+  return `<div class="game">
+    <div class="top">
+      <div class="info">แฮนด์ที่ <b>${G.handNo}</b><br>บลายด์ ${fmt(G.sb)} / ${fmt(G.bb)}</div>
+      <div class="tools">
+        <button class="ibtn" data-act="undo" ${hist.length?'':'disabled'}>↶ ย้อนกลับ</button>
+        <button class="ibtn" data-act="menu">เมนู</button>
+      </div>
+    </div>
+    <div class="stage">
+      <div class="table"></div>
+      <div class="center">
+        <div class="steps">${steps}</div>
+        <div class="potl">เงินในหม้อ</div>
+        <div class="pot num ${pc}">${potStr}</div>
+        <div class="pu">${thaiUnit(pot)}</div>
+        <div class="cb num">${cb}</div>
+        <div class="slots">${slots}</div>
+      </div>
+      ${bets}${seats}
+    </div>
+    <div class="panel">${panel}</div>
+  </div>${ui.menu?menuHTML():''}${ui.seat!==null?seatSheetHTML():''}`;
+}
+
+function noticeHTML(){return G.notice?`<div class="notice">${esc(G.notice)}</div>`:'';}
+
+function dealPanel(){
+  const P=G.players,s=G.street;
+  const live=P.filter(p=>!p.folded).length;
+  const nxt=pendingActor(G.firstFrom);
+  const firstTxt=nxt>=0?`คนแรกที่ต้องตัดสินใจคือ <b>${esc(P[nxt].name)}</b>`:'รอบนี้ไม่มีการเดิมพัน เพราะผู้เล่นที่เหลือออลอินแล้ว';
+  let h=noticeHTML();
+  if(s===0){
+    const first=nextIdx(G.dealer,p=>!p.out);
+    h+=G.levelUp?`<div class="lvl">บลายด์ขึ้นเป็น ${fmt(G.sb)} / ${fmt(G.bb)} แล้ว</div>`:'';
+    h+=`<p class="title">แจกไพ่ให้ทุกคน</p>
+      <div class="msg">
+        แจกคนละ <b>2 ใบ</b> คว่ำหน้า เริ่มจาก <b>${esc(P[first].name)}</b> ซึ่งอยู่ซ้ายมือ Dealer แล้ววนตามเข็มนาฬิกา ให้ <b>${esc(P[G.dealer].name)}</b> (Dealer) ได้ใบสุดท้าย แจกครบ 2 รอบ
+      </div>
+      <div style="margin-top:10px">
+        <span class="pill">Small blind ${esc(P[G.sbIdx].name)} วาง ${fmt(P[G.sbIdx].total)}</span>
+        <span class="pill">Big blind ${esc(P[G.bbIdx].name)} วาง ${fmt(P[G.bbIdx].total)}</span>
+      </div>
+      <div class="msg" style="margin-top:4px">${firstTxt}</div>
+      <div class="act"><button class="btn b-main" data-act="deal">แจกเสร็จแล้ว เริ่มเดิมพัน</button></div>`;
+  }else{
+    const t=['','Flop','Turn','River'][s];
+    const how=['','เผาไพ่ 1 ใบ แล้วเปิดไพ่กลาง <b>3 ใบ</b>','เผาไพ่ 1 ใบ แล้วเปิดไพ่กลางอีก <b>1 ใบ</b> รวมเป็น 4 ใบ','เผาไพ่ 1 ใบ แล้วเปิดไพ่กลางใบสุดท้าย รวมเป็น 5 ใบ'][s];
+    h+=`<p class="title">เปิด ${t}</p>
+      <div class="msg">${how}<br>เงินในหม้อตอนนี้ <b class="num">${fmt(potTotal())}</b> ผู้เล่นที่ยังอยู่ ${live} คน<br>${firstTxt}</div>
+      <div class="act"><button class="btn b-main" data-act="deal">${nxt>=0?'เปิดแล้ว เริ่มเดิมพัน':'เปิดแล้ว ไปต่อ'}</button></div>`;
+  }
+  return h+ledgerBlock();
+}
+
+function betPanel(){
+  const P=G.players,i=G.turn,p=P[i];
+  const pn=posNameMap();
+  const fullCall=G.currentBet-p.bet,callAmt=Math.min(fullCall,p.stack);
+  const opp=P.filter((q,j)=>j!==i&&canAct(q)).length;
+  const maxTo=p.bet+p.stack;
+  const minTo=Math.min(G.currentBet+G.lastRaise,maxTo);
+  const raiseOK=opp>0&&p.stack>fullCall&&maxTo>minTo;
+  const allinOK=p.stack>0&&(opp>0||p.stack<=fullCall);
+  const isBet=G.currentBet===0;
+  const head=`<div class="ph"><div class="who">ตาของ<b>${esc(p.name)}${pn[i]?`<em>${pn[i]}</em>`:''}</b></div><div class="mine">เงินในมือ<b class="num">${fmt(p.stack)}</b></div></div>`;
+  const lastb=G.last?`<div class="lastb">ล่าสุด: ${esc(G.last)}</div>`:'';
+  if(ui.raising&&raiseOK){
+    ui.val=Math.max(minTo,Math.min(ui.val||minTo,maxTo));
+    const potNow=potTotal(),unit=Math.max(1,G.sb);
+    const rnd=v=>Math.round(v/unit)*unit;
+    const qv=f=>Math.max(minTo,Math.min(maxTo,rnd(G.currentBet+f*(potNow+fullCall))));
+    const km=v=>Math.max(minTo,Math.min(maxTo,rnd(v)));
+    let qs=[['ต่ำสุด',minTo]];
+    [['⅓ หม้อ',1/3],['½ หม้อ',.5],['⅔ หม้อ',2/3],['¾ หม้อ',.75],['เต็มหม้อ',1],['1.5 หม้อ',1.5],['2 หม้อ',2]].forEach(([t,f])=>qs.push([t,qv(f)]));
+    if(G.currentBet>0)[2,3,4].forEach(k=>qs.push([`×${k} ของเดิมพัน`,km(G.currentBet*k)]));
+    else [2,3,5,10].forEach(k=>qs.push([`${k} BB`,km(G.bb*k)]));
+    const seen=new Set();
+    qs=qs.filter(([t,v])=>{if(v>=maxTo||seen.has(v))return false;seen.add(v);return true;});
+    qs.push(['ออลอิน',maxTo]);
+    const pay=ui.val-p.bet;
+    return `${head}${lastb}
+      <div class="rs-top"><label>${isBet?'เดิมพันเป็น':'เกทับเป็น'}</label><input id="rv" type="number" inputmode="numeric" value="${ui.val}"></div>
+      <div class="rs-read"><span id="rpay">วางเงินเพิ่ม <b class="num">${fmt(pay)}</b> (วางไว้แล้วรอบนี้ ${fmt(p.bet)})</span><span id="rvread" class="g">${thaiUnit(ui.val)}</span></div>
+      <div class="rs-sl">
+        <button class="step" data-act="rstep" data-v="-${G.bb*5}">−5BB</button>
+        <button class="step" data-act="rstep" data-v="-${G.bb}">−1BB</button>
+        <input id="rs" type="range" min="${minTo}" max="${maxTo}" step="1" value="${ui.val}">
+        <button class="step" data-act="rstep" data-v="${G.bb}">+1BB</button>
+        <button class="step" data-act="rstep" data-v="${G.bb*5}">+5BB</button>
+      </div>
+      <div class="qrow">${qs.map(([t,v])=>`<button class="q num ${t==='ออลอิน'?'mx':''}" data-act="rset" data-v="${v}">${t}<b>${fmtC(v)}</b></button>`).join('')}</div>
+      <div class="rs-act"><button class="btn b-ghost" data-act="rcancel">ยกเลิก</button><button class="btn b-raise" data-act="rconfirm" id="rc">ยืนยัน ${fmt(ui.val)}</button></div>`;
+  }
+  ui.raising=false;
+  const callLbl=fullCall===0?['ผ่าน','Check']:(fullCall>=p.stack?['ตาม (ออลอิน)',fmt(p.stack)]:['ตาม',fmt(callAmt)]);
+  const needBox=fullCall===0
+    ?`<div class="need"><span>ไม่ต้องวางเงินเพิ่ม<br>กดผ่านได้</span><b class="num">0</b></div>`
+    :`<div class="need"><span>ตามต้องวางเงินเพิ่ม<br>ที่วางไว้แล้ว ${fmt(p.bet)} จากเดิมพัน ${fmt(G.currentBet)}</span><b class="num">${fmt(callAmt)}</b></div>`;
+  let note='';
+  if(fullCall>p.stack)note=`<div class="note">เงินของ ${esc(p.name)} มี ${fmt(p.stack)} ไม่พอตามเต็ม ${fmt(fullCall)} จึงตามได้แค่ออลอิน ส่วนที่คนอื่นวางเกินจะแยกเป็นหม้อรอง หรือคืนให้เจ้าของถ้าไม่มีใครตาม</div>`;
+  else{
+    const al=P.filter((q,j)=>j!==i&&q.allin&&!q.folded);
+    if(al.length&&fullCall>0)note=`<div class="note">${al.map(q=>`${esc(q.name)} ออลอิน (รวมวาง ${fmt(q.total)})`).join(', ')} ถ้าคุณวางเกิน ส่วนที่เกินจะแยกเป็นหม้อรอง ดูสรุปด้านล่าง</div>`;
+  }
+  return `${head}${lastb}${needBox}${note}
+    <div class="btns">
+      <button class="btn b-fold" data-act="fold">หมอบ<small>Fold</small></button>
+      <button class="btn b-call" data-act="${fullCall===0?'check':'call'}">${callLbl[0]}<small class="num">${callLbl[1]}</small></button>
+      <button class="btn b-raise" data-act="raise" ${raiseOK?'':'disabled'}>${isBet?'เดิมพัน':'เกทับ'}<small>${isBet?'Bet':'Raise'}</small></button>
+      <button class="btn b-all" data-act="allin" ${allinOK?'':'disabled'}>ออลอิน<small class="num">${fmt(p.stack)}</small></button>
+    </div>
+    ${ledgerBlock()}`;
+}
+
+function sdPanel(){
+  const P=G.players;
+  let h=noticeHTML()+`<p class="title">เปิดไพ่ ใครชนะ?</p><div class="msg" style="margin-bottom:10px">แตะชื่อผู้ชนะของแต่ละหม้อ ถ้าเสมอให้เลือกหลายคน เงินจะถูกหารให้เท่ากัน</div><div class="pots">`;
+  G.sd.pots.forEach((pot,k)=>{
+    const t=k===0?'หม้อหลัก':`หม้อรอง ${k}`;
+    const picks=G.sd.picks[k];
+    let body;
+    if(pot.elig.length===1)body=`<div class="auto">ไม่มีคู่แข่ง คืนให้ <b>${esc(P[pot.elig[0]].name)}</b></div>`;
+    else{
+      body=`<div class="opts">${pot.elig.map(i=>`<button class="pk ${picks.includes(i)?'on':''}" data-act="pick" data-k="${k}" data-i="${i}">${esc(P[i].name)}</button>`).join('')}</div>`;
+      if(picks.length){const share=Math.floor(pot.amount/picks.length);body+=`<div class="share">ผู้ชนะหยิบเงิน <b class="num">${fmt(share)}</b>${picks.length>1?' ต่อคน':''}</div>`;}
+    }
+    h+=`<div class="pc"><div class="pt"><b>${t}</b><b class="num">${fmt(pot.amount)}</b></div>${body}</div>`;
+  });
+  const ok=G.sd.picks.every(a=>a.length>0);
+  h+=`</div><button class="btn b-main" data-act="payout" ${ok?'':'disabled'}>ยืนยันผู้ชนะ</button>`+ledgerBlock();
+  return h;
+}
+
+function resultPanel(){
+  const P=G.players,R=G.result;
+  const cand=P.filter(p=>p.stack>0).length;
+  const gots=R.rows.filter(r=>r.got>0).map(r=>`<div class="got"><span>${esc(P[r.i].name)} หยิบเงินจากกองกลาง</span><b class="num">${fmt(r.got)}</b></div>`).join('');
+  let rows='';
+  P.forEach((p,i)=>{
+    const r=R.rows.find(x=>x.i===i);
+    if(!r&&!p.out)return;
+    const d=r?r.delta:0;
+    const dc=d>0?'p':d<0?'m':'z';
+    rows+=`<div class="r"><span class="n">${esc(p.name)}${p.stack<=0?' <span class="bust">หมดตัว</span>':''}</span>
+      <span class="d ${dc} num">${r?(d>0?'+':'')+fmt(d):'ไม่ได้เล่น'}</span><span class="s num">${fmt(p.stack)}</span>
+      <button class="rb" data-act="rebuy" data-i="${i}">ซื้อเพิ่ม</button></div>`;
+  });
+  const nd=nextIdx(G.dealer,p=>p.stack>0);
+  const nextTxt=cand<2?'เหลือผู้เล่นไม่ถึง 2 คน':`Dealer ถัดไป: ${esc(P[nd].name)}`;
+  return `<p class="title">จบแฮนด์ที่ ${G.handNo}</p>
+    <div class="msg">${esc(R.text)} เงินในหม้อทั้งหมด <b class="num">${fmt(R.pot)}</b></div>
+    <div class="gots">${gots}</div>
+    <div class="rows" style="margin:10px 0 14px">${rows}</div>
+    <div class="msg" style="font-size:13.5px;color:var(--mut);margin-bottom:10px">${nextTxt}</div>
+    <button class="btn b-main" data-act="next">${cand<2?'ดูผลสรุปเกม':'แฮนด์ถัดไป'}</button>`;
+}
+
+function overPanel(){
+  const P=G.players.map((p,i)=>({p,i})).sort((a,b)=>b.p.stack-a.p.stack);
+  const alive=P.filter(x=>x.p.stack>0).length;
+  const champ=P[0].p;
+  const rows=P.map(({p,i})=>`<div class="r"><span class="n">${esc(p.name)}</span><span class="s num">${fmt(p.stack)}</span><button class="rb" data-act="rebuy" data-i="${i}">ซื้อเพิ่ม</button></div>`).join('');
+  return `<p class="title">จบเกม</p>
+    <div class="msg">${alive<2?`<b>${esc(champ.name)}</b> เก็บเงินได้ทั้งหมด`:'ซื้อเพิ่มแล้ว เล่นต่อได้เลย'}</div>
+    <div class="rows" style="margin:10px 0 14px">${rows}</div>
+    <div class="btns">
+      <button class="btn b-ghost" data-act="newgame" style="min-height:76px;font-size:19px">เริ่มเกมใหม่</button>
+      <button class="btn b-main" style="width:auto" data-act="next" ${alive<2?'disabled':''}>เล่นต่อ</button>
+    </div>`;
+}
+
+function menuHTML(){
+  return `<div class="ov" data-act="menuclose"><div class="sheet" onclick="event.stopPropagation()">
+    <h3>เมนู</h3>
+    <div class="sec">
+      <p>เปลี่ยนบลายด์ จะมีผลตั้งแต่แฮนด์ถัดไป</p>
+      <div class="row2">
+        <div class="field"><label>Small blind</label><input id="msb" type="number" inputmode="numeric" value="${G.pendSb||G.sb}"></div>
+        <div class="field"><label>Big blind</label><input id="mbb" type="number" inputmode="numeric" value="${G.pendBb||G.bb}"></div>
+      </div>
+      <button class="btn b-ghost" style="width:100%;margin-top:10px" data-act="setblinds">บันทึกบลายด์</button>
+    </div>
+    <div class="sec">
+      <p>แตะที่นั่งของผู้เล่นบนโต๊ะเพื่อแก้ชื่อ แก้ยอดเงิน หรือซื้อเพิ่ม ถ้ากดผิดใช้ปุ่มย้อนกลับด้านบนได้หลายครั้ง เกมถูกบันทึกอัตโนมัติ รีเฟรชหน้าแล้วเล่นต่อได้</p>
+    </div>
+    <div class="btns">
+      <button class="btn danger" data-act="newgame">เริ่มเกมใหม่</button>
+      <button class="btn b-main" style="width:auto;min-height:56px" data-act="menuclose">ปิด</button>
+    </div>
+  </div></div>`;
+}
+
+function seatSheetHTML(){
+  const p=G.players[ui.seat];
+  return `<div class="ov" data-act="seatclose"><div class="sheet" onclick="event.stopPropagation()">
+    <h3>แก้ไขผู้เล่น</h3>
+    <div class="sec"><div class="field"><label>ชื่อ</label><input id="sn" type="text" maxlength="14" value="${esc(p.name)}"></div></div>
+    <div class="sec">
+      <div class="field"><label>เงินในมือ (ไม่รวมที่วางลงหม้อแล้ว)</label><input id="ss" type="number" inputmode="numeric" value="${p.stack}"></div>
+      <p style="margin-top:8px">วางลงหม้อแล้วในแฮนด์นี้ ${fmt(p.total)}</p>
+      <button class="btn b-ghost" style="width:100%" data-act="rebuy" data-i="${ui.seat}">ซื้อเพิ่ม +${fmt(G.settings.stack)}</button>
+    </div>
+    <div class="btns">
+      <button class="btn b-ghost" data-act="seatclose">ยกเลิก</button>
+      <button class="btn b-main" style="width:auto;min-height:56px" data-act="seatsave">บันทึก</button>
+    </div>
+  </div></div>`;
+}
+
+/* ---------- render + events ---------- */
+function render(){
+  const app=$('#app');
+  if(!G)app.innerHTML=setupHTML();
+  else app.innerHTML=gameHTML();
+}
+function updateRaiseReadouts(v){
+  const p=G.players[G.turn];
+  const rp=$('#rpay');if(rp)rp.innerHTML=`วางเงินเพิ่ม <b class="num">${fmt(Math.max(0,v-p.bet))}</b> (วางไว้แล้วรอบนี้ ${fmt(p.bet)})`;
+  const rr=$('#rvread');if(rr)rr.textContent=thaiUnit(v);
+  const rc=$('#rc');if(rc)rc.textContent='ยืนยัน '+fmt(v);
+}
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act;
+  switch(a){
+    case 'n':readSetup();S.n=+el.dataset.v;render();break;
+    case 'pstack':{
+      readSetup();S.stack=+el.dataset.v;
+      const d=defaultBlinds(S.stack);S.sb=d.sb;S.bb=d.bb;S.manual=false;
+      render();break;}
+    case 'pblind':
+      readSetup();S.sb=+el.dataset.a;S.bb=+el.dataset.b;S.manual=(+el.dataset.r!==100);
+      render();break;
+    case 'start':startGame();break;
+    case 'deal':confirmDeal();break;
+    case 'fold':case 'check':case 'call':case 'allin':act(a);break;
+    case 'raise':{
+      const p=G.players[G.turn];
+      ui.raising=true;ui.val=Math.min(G.currentBet+G.lastRaise,p.bet+p.stack);render();break;}
+    case 'rcancel':ui.raising=false;render();break;
+    case 'rstep':{
+      const p=G.players[G.turn];
+      const maxTo=p.bet+p.stack,minTo=Math.min(G.currentBet+G.lastRaise,maxTo);
+      const cur=Math.round(+$('#rv').value||ui.val);
+      ui.val=Math.max(minTo,Math.min(maxTo,cur+(+el.dataset.v)));
+      render();break;}
+    case 'rset':ui.val=+el.dataset.v;render();break;
+    case 'rconfirm':{
+      const p=G.players[G.turn];
+      const maxTo=p.bet+p.stack,minTo=Math.min(G.currentBet+G.lastRaise,maxTo);
+      const v=Math.round(+$('#rv').value||ui.val);
+      if(v<minTo){toast(`ต้องเกทับอย่างน้อย ${fmt(minTo)}`);break;}
+      if(v>=maxTo)act('allin');else act('raise',v);
+      break;}
+    case 'pick':{
+      const k=+el.dataset.k,i=+el.dataset.i,arr=G.sd.picks[k];
+      const at=arr.indexOf(i);if(at>=0)arr.splice(at,1);else arr.push(i);
+      save();render();break;}
+    case 'payout':confirmShowdown();break;
+    case 'next':nextHand();break;
+    case 'rebuy':rebuy(+el.dataset.i);break;
+    case 'undo':undo();break;
+    case 'ledger':ui.ledger=!ui.ledger;render();break;
+    case 'menu':ui.menu=true;render();break;
+    case 'menuclose':ui.menu=false;render();break;
+    case 'seat':ui.seat=+el.dataset.i;render();break;
+    case 'seatclose':ui.seat=null;render();break;
+    case 'seatsave':{
+      const p=G.players[ui.seat];
+      const nm=($('#sn').value||'').trim()||p.name;
+      const st=Math.round(+$('#ss').value);
+      if(!(st>=0))return toast('ตรวจสอบยอดเงินอีกครั้ง');
+      if(st<=0&&['deal','bet','showdown'].includes(G.phase)&&!p.out)return toast('ระหว่างแฮนด์ ยอดเงินในมือต้องมากกว่า 0 (ถ้าหมดตัวให้กดออลอิน)');
+      pushHist();p.name=nm;p.stack=st;ui.seat=null;save();render();break;}
+    case 'setblinds':{
+      const sb=Math.round(+$('#msb').value),bb=Math.round(+$('#mbb').value);
+      if(!(sb>0&&bb>0)||sb>bb)return toast('ตรวจสอบค่าบลายด์อีกครั้ง');
+      G.pendSb=sb;G.pendBb=bb;ui.menu=false;save();render();
+      toast(`บลายด์ ${fmt(sb)} / ${fmt(bb)} เริ่มใช้แฮนด์ถัดไป`);break;}
+    case 'newgame':ui.menu=false;newGame();break;
+  }
+});
+
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='rs'){ui.val=+t.value;$('#rv').value=t.value;updateRaiseReadouts(+t.value);}
+  else if(t.id==='rv'){const v=+t.value||0;ui.val=v;const rs=$('#rs');if(rs)rs.value=v;updateRaiseReadouts(v);}
+  else if(t.id==='stack'){
+    S.stack=t.value;
+    if(!S.manual&&+t.value>0){const d=defaultBlinds(+t.value);S.sb=d.sb;S.bb=d.bb;$('#sb').value=d.sb;$('#bb').value=d.bb;}
+    refreshSetupBits();
+  }
+  else if(t.id==='sb'){
+    S.manual=true;S.sb=t.value;const v=Math.round((+t.value||0)*2);S.bb=v>0?v:'';$('#bb').value=S.bb;
+    refreshSetupBits();
+  }
+  else if(t.id==='bb'){S.manual=true;S.bb=t.value;refreshSetupBits();}
+});
+
+(function(){const d=defaultBlinds(S.stack);S.sb=d.sb;S.bb=d.bb;})();
+if(!load())G=null;
+render();
+</script>
+</body>
+</html>
